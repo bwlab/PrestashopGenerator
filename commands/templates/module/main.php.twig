@@ -1,0 +1,237 @@
+<?php
+
+if (!defined('_PS_VERSION_'))
+    exit;
+
+class {{name|capitalize}} extends Module
+{
+    function __construct()
+    {
+        $this->name = '{{name}}';
+        $this->tab = '{{tab}}';
+        $this->version = '1.0';
+        $this->author = '{{author}}';
+        $this->need_instance = 0;
+        $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.5.9');
+
+        parent::__construct();
+
+        $this->displayName = $this->l('{{display_name}}');
+        $this->description = $this->l('{{description}}');
+
+        $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
+
+    }
+    /**
+     * install method
+     * @return bool
+     */
+        public function install()
+    {
+        /**
+        your install code here
+         */
+
+        if (!parent::install()) {
+            return false;
+        }
+
+        //create database table
+
+        foreach ($this->getSql() as $s) {
+            if (!Db::getInstance()->Execute($s)) {
+                $this->uninstall();
+                return false;
+            }
+        }
+
+        //example to install hook
+        return true
+        && $this->registerHook('header');
+    }
+
+        /**
+         * prepare sql to install and uninstall
+         * @param bool $uninstall
+         * @return array
+         */
+        private function getSql($uninstall = false)
+    {
+
+
+        if ($uninstall) {
+            $sql = array();
+            return $sql;
+        }
+
+        $sql = array();
+        return $sql;
+    }
+
+        /**
+         * uninstall method
+         * @return bool
+         */
+        public function uninstall()
+    {
+
+        if (!parent::uninstall()) {
+            return false;
+        }
+
+        /**
+        your uninstall code here
+         */
+        foreach ($this->getSql(true) as $s) {
+            if (!Db::getInstance()->Execute($s)) {
+                return false;
+            }
+        }
+
+        //example to uninstall hook
+        $this->unregisterHook('header');
+        return true;
+    }
+
+        public function hookHeader($params)
+    {
+
+    }
+
+        /**
+         * @return mixed
+         */
+        public function getContent()
+    {
+        $output = null;
+
+        if (Tools::isSubmit('submit' . $this->name)) {
+
+        }
+        return $this->displayForm();
+    }
+
+        public function displayForm($message = null)
+    {
+        // Get default Language
+        $default_lang = (int)Configuration::get('PS_LANG_DEFAULT');
+
+        if (!$message) {
+            $fields_form[0]['form']['description'] = $message;
+        }
+        $helper = new HelperForm();
+
+        // Module, t    oken and currentIndex
+        $helper->module = $this;
+        $helper->name_controller = $this->name;
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
+
+        // Language
+        $helper->default_form_language = $default_lang;
+        $helper->allow_employee_form_lang = $default_lang;
+
+        // Title and toolbar
+        $helper->title = $this->displayName;
+        $helper->show_toolbar = true; // false -> remove toolbar
+        $helper->toolbar_scroll = true; // yes - > Toolbar is always visible on the top of the screen.
+        $helper->submit_action = 'submit' . $this->name;
+        $helper->toolbar_btn = array(
+            'save' =>
+            array(
+                'desc' => $this->l('Save'),
+                'href' => AdminController::$currentIndex . '&configure=' . $this->name . '&save' . $this->name .
+                '&token=' . Tools::getAdminTokenLite('AdminModules'),
+            ),
+            'back' => array(
+                'href' => AdminController::$currentIndex . '&token=' . Tools::getAdminTokenLite('AdminModules'),
+                'desc' => $this->l('Back to list')
+            )
+        );
+
+        // Load current value
+        //$helper->fields_value['xxx'] = xxxx;
+
+        return $helper->generateForm($this->prepareForm());
+    }
+
+        /**
+         *  prepare form for backend
+         * @return array()
+         */
+        private function prepareForm()
+    {
+        $helper = new Helper();
+
+        $cattree = $helper->renderCategoryTree();
+        // Init Fields form array
+        $fields_form[0]['form'] = array(
+            'legend' => array(
+                'title' => $this->l('Settings'),
+            ),
+            'input' => array(
+                array(
+                    'type' => 'categories_select',
+                    'label' => $this->l('Categpries'),
+                    'name' => 'category',
+                    'category_tree' => $cattree
+                ),
+            ),
+            'submit' => array(
+                'title' => $this->l('Save'),
+                'class' => 'button'
+            )
+        );
+        return $fields_form;
+    }
+
+        public function __call($method, $args = '')
+    {
+        $prefix = $this->getConfigPrefix();
+
+        if (preg_match('/getConfig/', $method)) {
+            $config_name = $prefix . preg_replace('/getConfig/', '', $method);
+            return $this->getConfig(strtoupper($config_name));
+        }
+
+        if (preg_match('/setConfig/', $method)) {
+            $config_name = $prefix . preg_replace('/setConfig/', '', $method);
+            $this->setConfig(strtoupper($config_name), $args[0]);
+        }
+
+        if (preg_match('/deleteConfig/', $method)) {
+            $config_name = $prefix . preg_replace('/deleteConfig/', '', $method);
+            $this->deleteConfig(strtoupper($config_name));
+        }
+    }
+
+        private function getConfigPrefix()
+    {
+        return get_class($this) . "_";
+    }
+
+        private function getConfig($name)
+    {
+        $r = ConfigurationCore::get(strtoupper($name));
+
+        $configvalues = json_decode($r);
+
+        if ($configvalues) return $configvalues;
+
+        return $r;
+    }
+
+        private function setConfig($name, $vals)
+    {
+        if (is_array($vals)) {
+            return ConfigurationCore::updateValue(strtoupper($name), json_encode($vals));
+        } else {
+            return ConfigurationCore::updateValue(strtoupper($name), $vals);
+        }
+    }
+
+        private function deleteConfig($name)
+    {
+        return ConfigurationCore::deleteByName(strtoupper($name));
+    }
+}
