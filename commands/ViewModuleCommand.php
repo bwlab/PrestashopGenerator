@@ -99,7 +99,7 @@ class ViewModuleCommand extends Command
 
                     $formattedLine = $formatter->formatSection(
                         'to call view, add code in your module',
-                        '      return $this->display(__FILE__, '.$viewname.'\'tpl\');'
+                        '      return $this->display(__FILE__, \''.$viewname.'.tpl\');'
                     );
                     $output->writeln($formattedLine);
                     break;
