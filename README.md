@@ -43,6 +43,10 @@ Install dependencies
 ##init module
     
     bin/console.sh module:init <name> <module display name> "<dscription>" <author> <tab>
+
+##create view module
+
+    bin/console.sh module:view:add --name=<module name> --viewname<file template name>
     
 
 

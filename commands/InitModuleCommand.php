@@ -13,7 +13,7 @@ use Twig_Loader_String;
 use Twig_Environment;
 use Twig_Loader_Filesystem;
 
-class GeneratorCommand extends Command
+class InitModuleCommand extends Command
 {
     protected function configure()
     {
