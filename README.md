@@ -3,6 +3,8 @@ PrestashopGenerator
 
 A simple generator module for Prestashop
 
+<iframe width="640" height="480" src="//www.youtube.com/embed/E6gmHFSGYxk" frameborder="0" allowfullscreen></iframe>
+
 #Install
 To install create folder bin in Prestashop Root directory
 
