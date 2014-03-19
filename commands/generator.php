@@ -13,7 +13,7 @@ use Twig_Loader_String;
 use Twig_Environment;
 use Twig_Loader_Filesystem;
 
-class SalutaCommand extends Command
+class GeneratorCommand extends Command
 {
     protected function configure()
     {
