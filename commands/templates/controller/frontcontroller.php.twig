@@ -1,0 +1,32 @@
+<?php
+class {{name|capitalize}}{{controllername|capitalize}}ModuleFrontController extends ModuleFrontController
+{
+
+    public function init()
+    {
+        if (!$this->context->customer->isLogged())
+            Tools::redirect('index.php?controller=authentication');
+        parent::init();
+    }
+
+    public function setMedia()
+    {
+        parent::setMedia();
+    }
+
+
+    /**
+     * @see FrontController::initContent()
+     */
+    public function initContent()
+    {
+        parent::initContent();
+
+        if (Tools::isSubmit('revive'))
+        {
+        }
+
+        $this->context->smarty->assign(array());
+        $this->setTemplate('{{viewname}}.tpl');
+    }
+}

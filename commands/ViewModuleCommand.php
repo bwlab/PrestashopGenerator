@@ -68,13 +68,13 @@ class ViewModuleCommand extends Command
             $finder->directories()->in($dir);
 
             //recupero la cartella view
-            if (!count($finder->path('views'))) {
+            if (!count($finder->directories()->contains('views'))) {
                 $dir .= DIRECTORY_SEPARATOR . 'views';
                 $fs->mkdir($dir );
                 $fs->copy($indexphpfile, $dir.DIRECTORY_SEPARATOR.'index.php');
             };
 
-            $d = $finder->directories()->name('templates');
+            $d = $finder->directories()->contains('templates');
             if (!count($d)) {
                 $dir .= DIRECTORY_SEPARATOR . 'templates';
                 $fs->mkdir($dir );
@@ -86,7 +86,7 @@ class ViewModuleCommand extends Command
             switch ($type) {
 
                 case 'hook':
-                    $d =  $finder->directories()->name('hook')->notName('templates');
+                    $d =  $finder->directories()->contains('hook');
                     $hookdir = $this->getBaseDir($name). DIRECTORY_SEPARATOR.'views'.DIRECTORY_SEPARATOR .'templates'.DIRECTORY_SEPARATOR. 'hook';
 
                     if (!count($d)){
