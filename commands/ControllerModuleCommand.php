@@ -42,10 +42,9 @@ class ControllerModuleCommand extends Command
             ->addOption(
                 'viewname',
                 null,
-                InputOption::VALUE_REQUIRED,
+                InputOption::VALUE_OPTIONAL,
                 'view name'
-            )
-            ;
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -60,10 +59,15 @@ class ControllerModuleCommand extends Command
         $controllername = strtolower($input->getOption('controllername'));
         $viewname = strtolower($input->getOption('viewname'));
 
+        if ($site == 'front') {
+            $output->writeln('For front it\'s necessary add a view');
+            exit;
+        }
+
         //init dir
         $dir = $this->getBaseDir($name);
-        $indexphpfile = __DIR__.DIRECTORY_SEPARATOR.'templates'.DIRECTORY_SEPARATOR.'controller'.DIRECTORY_SEPARATOR.'index.php';
-        $output->writeln("create controller " . $controllername. " in module " . $name);
+        $indexphpfile = __DIR__ . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR . 'controller' . DIRECTORY_SEPARATOR . 'index.php';
+        $output->writeln("create controller " . $controllername . " in module " . $name);
 
         //config.xml
         try {
@@ -73,22 +77,22 @@ class ControllerModuleCommand extends Command
             //recupero la cartella view
             if (!count($finder->path('controllers'))) {
                 $dir .= DIRECTORY_SEPARATOR . 'controllers';
-                $fs->mkdir($dir );
-                $fs->copy($indexphpfile, $dir.DIRECTORY_SEPARATOR.'index.php');
+                $fs->mkdir($dir);
+                $fs->copy($indexphpfile, $dir . DIRECTORY_SEPARATOR . 'index.php');
             };
 
             $d = $finder->directories()->name($site);
             if (!count($d)) {
                 $dir .= DIRECTORY_SEPARATOR . $site;
-                $fs->mkdir($dir );
-                $fs->copy($indexphpfile, $dir.DIRECTORY_SEPARATOR.'index.php');
+                $fs->mkdir($dir);
+                $fs->copy($indexphpfile, $dir . DIRECTORY_SEPARATOR . 'index.php');
             };
 
-            $ctrldir = $this->getBaseDir($name). DIRECTORY_SEPARATOR.'controllers'.DIRECTORY_SEPARATOR .$site;
+            $ctrldir = $this->getBaseDir($name) . DIRECTORY_SEPARATOR . 'controllers' . DIRECTORY_SEPARATOR . $site;
 
-            if (!count($d)){
+            if (!count($d)) {
                 $fs->mkdir($ctrldir);
-                $fs->copy($indexphpfile, $ctrldir.DIRECTORY_SEPARATOR.'index.php');
+                $fs->copy($indexphpfile, $ctrldir . DIRECTORY_SEPARATOR . 'index.php');
             }
 
             $formatter = $this->getHelperSet()->get('formatter');
@@ -96,47 +100,61 @@ class ControllerModuleCommand extends Command
             //recupero la cartella view
             if (!count($finder->directories()->contains('views'))) {
                 $dir .= DIRECTORY_SEPARATOR . 'views';
-                $fs->mkdir($dir );
-                $fs->copy($indexphpfile, $dir.DIRECTORY_SEPARATOR.'index.php');
+                $fs->mkdir($dir);
+                $fs->copy($indexphpfile, $dir . DIRECTORY_SEPARATOR . 'index.php');
             };
 
             $d = $finder->directories()->contains('templates');
             if (!count($d)) {
                 $dir .= DIRECTORY_SEPARATOR . 'templates';
-                $fs->mkdir($dir );
-                $fs->copy($indexphpfile, $dir.DIRECTORY_SEPARATOR.'index.php');
+                $fs->mkdir($dir);
+                $fs->copy($indexphpfile, $dir . DIRECTORY_SEPARATOR . 'index.php');
             };
 
-            switch($site){
+            switch ($site) {
                 case 'front':
-                    $filename = $ctrldir.DIRECTORY_SEPARATOR.$controllername.'.php';
+                    $filename = $ctrldir . DIRECTORY_SEPARATOR . $controllername . '.php';
                     $fs->touch($filename);
                     file_put_contents($filename,
                         $twig->render(
                             'frontcontroller.php.twig',
                             array(
-                                'name' =>$name,
-                                'controllername' =>$controllername,
-                                'viewname' =>$viewname,
+                                'name' => $name,
+                                'controllername' => $controllername,
+                                'viewname' => $viewname,
                             )
                         )
                     );
 
-                    $d =  $finder->directories()->contains('front');
-                    $frontdir = $this->getBaseDir($name). DIRECTORY_SEPARATOR.'views'.DIRECTORY_SEPARATOR .'templates'.DIRECTORY_SEPARATOR. 'front';
+                    $d = $finder->directories()->contains('front');
+                    $frontdir = $this->getBaseDir($name) . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR . 'front';
                     if (!count($d)) {
-                        $fs->mkdir($frontdir );
-                        $fs->copy($indexphpfile, $frontdir.DIRECTORY_SEPARATOR.'index.php');
+                        $fs->mkdir($frontdir);
+                        $fs->copy($indexphpfile, $frontdir . DIRECTORY_SEPARATOR . 'index.php');
                     };
 
-                    $fs->touch($frontdir.DIRECTORY_SEPARATOR.$viewname.'.tpl');
+                    $fs->touch($frontdir . DIRECTORY_SEPARATOR . $viewname . '.tpl');
                     $formattedLine = $formatter->formatSection(
                         'to call controller on front, add code in your template',
-                        '  {$link->getModuleLink(\''.$name.'\', \''.$controllername.'\', [], true)|escape:\'html\'}'
+                        '  {$link->getModuleLink(\'' . $name . '\', \'' . $controllername . '\', [], true)|escape:\'html\'}'
                     );
                     $output->writeln($formattedLine);
-                break;
+                    break;
+
                 case 'admin':
+                    $filename = $ctrldir . DIRECTORY_SEPARATOR . 'Admin' . ucfirst($controllername) . 'Controller.php';
+                    $fs->touch($filename);
+                    file_put_contents($filename,
+                        $twig->render(
+                            'admincontroller.php.twig',
+                            array(
+                                'name' => $name,
+                                'controllername' => $controllername,
+                                'viewname' => $viewname,
+                            )
+                        )
+                    );
+
                     break;
             }
 
