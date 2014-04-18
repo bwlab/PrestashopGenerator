@@ -20,25 +20,7 @@ class ViewModuleCommand extends Command
     {
         $this
             ->setName('module:view:add')
-            ->setDescription('Add a view to module')
-            ->addOption(
-                'name',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'module name'
-            )
-            ->addOption(
-                'viewname',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'View name'
-            )->addOption(
-                'type',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'View type [hook, ...]',
-                'hook'
-            );
+            ->setDescription('Add a view to module');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -46,17 +28,46 @@ class ViewModuleCommand extends Command
         //twig init
         $loader = new Twig_Loader_Filesystem(__DIR__ . '/templates/module');
         $twig = new Twig_Environment($loader, array());
-
         $fs = new Filesystem();
-        //module name
-        $name = strtolower($input->getOption('name'));
 
-        // view name
-        $viewname = strtolower($input->getOption('viewname'));
+
+        //setup dialog
+        $dialog = $this->getHelper('dialog');
+
+        //ask module name
+        $name = strtolower(
+                    $dialog->ask(
+                        $output, 
+                        '<comment>Existent module name </comment>: '
+                    )
+                );
+        
+        //view name
+        $viewname = strtolower(
+                $dialog->ask(
+                    $output, 
+                    '<comment>View name </comment>: '
+                )
+            );
 
         //type of view
-        $type = strtolower($input->getOption('type'));
+        $types = array(
+            'hook'=>'Hook',
+            'front'=>'Front',
+            'admin'=>'Admin'
+            );
+        
+        $typeidx = strtolower(
+                $dialog->select(
+                        $output,
+                        '<comment>Type of view',
+                        $types
 
+                    )
+            );
+
+        $type = $types[$typeidx];
+        
         //init dir
         $dir = $this->getBaseDir($name);
         $indexphpfile = __DIR__.DIRECTORY_SEPARATOR.'templates'.DIRECTORY_SEPARATOR.'module'.DIRECTORY_SEPARATOR.'index.php';

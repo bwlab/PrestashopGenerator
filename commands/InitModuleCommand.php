@@ -20,27 +20,6 @@ class InitModuleCommand extends Command
         $this
             ->setName('module:init')
             ->setDescription('Module initialization')
-            ->addArgument(
-                'name',
-                InputArgument::OPTIONAL,
-                'Module name'
-            )->addArgument(
-                'display_name',
-                InputArgument::OPTIONAL,
-                'Name displayed'
-            )->addArgument(
-                'description',
-                InputArgument::OPTIONAL,
-                'Short description'
-            )->addArgument(
-                'author',
-                InputArgument::OPTIONAL,
-                'Author'
-            )->addArgument(
-                'tab',
-                InputArgument::OPTIONAL,
-                'Tab'
-            )
         ;
     }
 
@@ -48,17 +27,36 @@ class InitModuleCommand extends Command
     {
         //twig init
         $loader = new Twig_Loader_Filesystem(__DIR__.'/templates/module');
-        $twig = new Twig_Environment($loader, array(
-
-        ));
+        $twig = new Twig_Environment($loader, array());
 
         $fs = new Filesystem();
 
-        $name = strtolower($input->getArgument('name'));
-        $display_name = $input->getArgument('display_name');
-        $description = $input->getArgument('description');
-        $author = $input->getArgument('author');
-        $tab = $input->getArgument('tab');
+        //setup dialog
+        $dialog = $this->getHelper('dialog');
+
+        //ask module name
+        $name = $dialog->ask($output, '<comment>Module name to create</comment>: ');
+
+        //name displaied
+        $display_name = $dialog->ask($output, '<comment>Display module name</comment>: ');
+        
+        //module description
+        $description = $dialog->ask($output, '<comment>Description</comment>: ');
+
+        //author module
+        $author = $dialog->ask($output, '<comment>Author</comment>: ');
+
+        //category module
+        $tabs = array(
+            'others'=>'Others'
+            );
+        $idxtab = $dialog->select(
+                    $output, 
+                    '<comment>Category</comment>: ',
+                    $tabs
+                );
+
+        $tab = $tabs[$idxtab];
 
         $output->writeln("Create module: ".$name);
 

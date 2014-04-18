@@ -2,13 +2,13 @@
 
 namespace Bwlab\Commands;
 
+
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
+
 use Symfony\Component\Finder\Finder;
 use Twig_Loader_String;
 use Twig_Environment;
@@ -19,51 +19,51 @@ class ControllerModuleCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('module:controller:add')
             ->setDescription('Add a controller to module')
-            ->addOption(
-                'name',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'module name'
-            )
-            ->addOption(
-                'site',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'front or admin'
-            )
-            ->addOption(
-                'controllername',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'controller name'
-            )
-            ->addOption(
-                'viewname',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'view name'
-            );
+            ->setHelp('')
+            ->setName('module:controller:add');
+            
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        //twig init
+        //tinit
         $loader = new Twig_Loader_Filesystem(__DIR__ . '/templates/controller');
         $twig = new Twig_Environment($loader, array());
-
         $fs = new Filesystem();
-        $name = strtolower($input->getOption('name'));
-        $site = strtolower($input->getOption('site'));
-        $controllername = strtolower($input->getOption('controllername'));
-        $viewname = strtolower($input->getOption('viewname'));
+        
+        //setup dialog
+        $dialog = $this->getHelper('dialog');
 
-        if ($site == 'front') {
-            $output->writeln('For front it\'s necessary add a view');
-            exit;
-        }
+        //ask module name
+        $name = $dialog->ask($output, '<comment>Existent module name</comment>: ');
 
+        //ask type 
+        $type = array('admin', 'front');
+        $idxtype = strtolower(
+                $dialog->select(
+                    $output, 
+                    '<comment>Select type</comment>: ',
+                    $type
+                    )
+            );
+        $site = $type[$idxtype];
+
+        $controllername = strtolower(
+                $dialog->ask(
+                        $output,
+                        '<comment>Controller name to create</comment>: '
+                    )
+            );
+
+        $viewname = strtolower(
+                $dialog->ask(
+                        $output,
+                        '<comment>View name to use</comment>: '
+                    )
+            );
+
+        
         //init dir
         $dir = $this->getBaseDir($name);
         $indexphpfile = __DIR__ . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR . 'controller' . DIRECTORY_SEPARATOR . 'index.php';
@@ -97,20 +97,6 @@ class ControllerModuleCommand extends Command
 
             $formatter = $this->getHelperSet()->get('formatter');
 
-            //recupero la cartella view
-            if (!count($finder->directories()->contains('views'))) {
-                $dir .= DIRECTORY_SEPARATOR . 'views';
-                $fs->mkdir($dir);
-                $fs->copy($indexphpfile, $dir . DIRECTORY_SEPARATOR . 'index.php');
-            };
-
-            $d = $finder->directories()->contains('templates');
-            if (!count($d)) {
-                $dir .= DIRECTORY_SEPARATOR . 'templates';
-                $fs->mkdir($dir);
-                $fs->copy($indexphpfile, $dir . DIRECTORY_SEPARATOR . 'index.php');
-            };
-
             switch ($site) {
                 case 'front':
                     $filename = $ctrldir . DIRECTORY_SEPARATOR . $controllername . '.php';
@@ -126,14 +112,6 @@ class ControllerModuleCommand extends Command
                         )
                     );
 
-                    $d = $finder->directories()->contains('front');
-                    $frontdir = $this->getBaseDir($name) . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR . 'front';
-                    if (!count($d)) {
-                        $fs->mkdir($frontdir);
-                        $fs->copy($indexphpfile, $frontdir . DIRECTORY_SEPARATOR . 'index.php');
-                    };
-
-                    $fs->touch($frontdir . DIRECTORY_SEPARATOR . $viewname . '.tpl');
                     $formattedLine = $formatter->formatSection(
                         'to call controller on front, add code in your template',
                         '  {$link->getModuleLink(\'' . $name . '\', \'' . $controllername . '\', [], true)|escape:\'html\'}'

@@ -1,0 +1,38 @@
+<?php
+
+class {{modelname|lower|capitalize}} extends ObjectModel
+{
+       //insert list of fields
+    {% for field in fields %}
+        public ${{field.fieldname|lower}};
+    {% endfor %}
+        public static $definition = array(
+            'table' => '{{tablename}}',
+            'primary' => '{{primarykey}}',
+            'multilang' => true,
+            'multishop' => true,
+            'fields' => array(
+            {% for field in fields %}
+                '{{field.fieldname|lower}}'=>array(
+                    'type'=>'{{field.type}}',
+                    'required'=>{{field.required}}
+                    ),
+            {% endfor %}
+            )
+        );
+
+    public function __construct($id_slide = null, $id_lang = null, $id_shop = null, Context $context = null)
+    {
+        Shop::addTableAssociation({{modelname|lower|capitalize}}::$definition['table'], array('type' => 'shop'));
+        parent::__construct($id_slide, $id_lang, $id_shop);
+
+    }
+    public function add($autodate = true, $null_values = false)
+    {
+        return parent::add($autodate = true, $null_values = false);
+    }
+    public function delete()
+    {
+        return parent::delte();
+    }
+}

@@ -203,6 +203,20 @@ class {{name|capitalize}} extends Module
             $config_name = $prefix . preg_replace('/deleteConfig/', '', $method);
             $this->deleteConfig(strtoupper($config_name));
         }
+
+        if (preg_match('/deleteConfig/', $method)) {
+            $config_name = $prefix . preg_replace('/deleteConfig/', '', $method);
+            $this->deleteConfig(strtoupper($config_name));
+        }
+        if (preg_match('/unregisterHook/', $method)) {
+            $hookname = preg_replace('/unregisterHook/', '', $method);
+            return $this->unregisterHook(lcfirst($hookname));
+        }
+        if (preg_match('/registerHook/', $method)) {
+            $hookname = preg_replace('/registerHook/', '', $method);
+            return $this->registerHook(lcfirst($hookname));
+        }
+
     }
 
         private function getConfigPrefix()
@@ -234,4 +248,5 @@ class {{name|capitalize}} extends Module
     {
         return ConfigurationCore::deleteByName(strtoupper($name));
     }
+
 }

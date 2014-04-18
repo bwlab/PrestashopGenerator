@@ -2,5 +2,73 @@
 class Admin{{controllername|capitalize}}Controller extends ModuleAdminController
 {
 
+    public function __construct()
+    {
+        $this->context = Context::getContext();
+        $this->table = '{{tablename}}';
+        $this->className = '{{modelname}}';
+        $this->name = '{{name}}';
+        $this->lang = true;
 
+        $this->identifier = '{{idetifier}}';
+
+        //multishop
+        Shop::addTableAssociation(
+            $this->table,
+            array(
+                'type' => 'shop'
+            )
+        );
+
+        $this->addRowAction('edit');
+        $this->addRowAction('delete');
+
+        $this->fields_list = array();
+
+        $this->fields_options = array(
+        'images' => array(
+            'title' => $this->l('images'),
+            'icon' => 'tab-orders',
+            'top' => '',
+            'bottom' => '',
+            'description' => $this->l('description'),
+            'fields' => array( ),
+            'submit' => array('name' => 'submitPreferences'),
+           )
+        );
+
+         $this->fields_form = array(
+        'legend' => array(
+            'title' => $this->l('Title configuration')
+        ),
+        'input' => array(  ),
+        'submit' => array(
+            'title' => $this->l('Save'),
+            'class' => 'button'
+            )
+        );
+    if (Shop::isFeatureActive()) {
+    $this->fields_form['input'][] = array(
+        'type' => 'shop',
+        'label' => $this->l('Shop association:'),
+        'name' => 'checkBoxShopAsso',
+    );
+    } // displays the «Shop association» parameter
+    parent::__construct();
+    }
+
+    public function postProcess()
+    {
+        if (Tools::getValue('submitPreferences')) {
+            //process option config buttons
+        }
+        return parent::postProcess();
+    }
+
+    private function updateConfig($name)
+    {
+        $v = Tools::getValue($name, false);
+        if ($v === false) return;
+        ConfigurationCore::updateValue($name, (int)$v);
+    }
 }
